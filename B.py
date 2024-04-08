@@ -8,8 +8,11 @@ vars_and_costs = {}
 exclude_i = set()
 exclude_j = set()
 
-# Huy: Khởi tạo tập hợp lưu trữ nguồn các xe đi từ điểm nguồn
-zero_demand_nodes = set() # format: {node} # lưu trữ các điểm có demand = 0 (lấy từ trong arc)
+# Huy: Khởi tạo tập hợp lưu trữ kết nối arc
+arc_connect = []
+
+# Huy: Khởi tạo tập hợp lưu trữ node không có demand hay supply
+zero_demand_supply = set()
 
 # Huy: Tạo một từ điển để lưu trữ biến cho mỗi cung
 edge_vars = {} # format: {(src, dest): cap}
@@ -39,8 +42,8 @@ with open('simpleInput2.txt', 'r') as file:
         elif parts[0] == 'a':
             # i là điểm nguồn, j là điểm đích, cij là chi phí
             i, j, cap, cij = parts[1], parts[2], int(parts[4]), int(parts[5])
-            if i not in exclude_i and i not in exclude_j:
-                zero_demand_nodes.add(i)
+            # Huy: Lưu trữ các cung không tự động sort vị trí của các biến
+            arc_connect.append((i, j))
             for source in exclude_i:
                 # Huy: Tạo biến quyết định x{source}_i_j, source là điểm xe xuất phát, i là điểm nguồn, j là điểm đích
                 var_name = f"x{source}_{i}_{j}"
@@ -53,11 +56,13 @@ with open('simpleInput2.txt', 'r') as file:
                 # Huy: Lưu trữ biến capacity cho mỗi cung
                 edge_vars[(i, j)] = cap
 
+                if i not in exclude_i and i not in exclude_j:
+                    zero_demand_supply.add(i)
+
         elif parts[0] == 'c':
             # Huy: kiểm tra xem có 'tw'
             if parts[1] == 'tw':
                 earliness_and_tardiness[parts[2]] = (int(parts[3]), int(parts[4]))
-
 
 # Retrieve all variables from the model
 all_vars = model.getVars()
@@ -70,7 +75,6 @@ var_dict = {v.name: v for v in all_vars}
 for source in exclude_i:
     # tìm trong danh sách các biến có tên chứa source như x0_0_3, x3_0_3
     source_vars = [var for var in all_vars if f"x{source}_{source}" in var.name]
-    print(f"source_vars: {source_vars}")
     # thêm ràng buộc để điểm xuất phát của xe 0 và xe 3
     model.addCons(quicksum(source_vars) == 1)
 
@@ -89,6 +93,7 @@ for (i, j), cap in edge_vars.items():
 
 # Huy: Ràng buộc về liên thông
 # Add constraints to the model
+"""
 # hard code
 model.addCons(var_dict['x0_3_2'] == var_dict['x0_2_0'])
 model.addCons(var_dict['x3_3_2'] == var_dict['x3_2_0'])
@@ -101,19 +106,83 @@ model.addCons(var_dict['x3_9_8'] == var_dict['x3_8_6'])
 
 model.addCons(var_dict['x0_0_11'] == var_dict['x0_11_9'])
 model.addCons(var_dict['x3_0_11'] == var_dict['x3_11_9'])
+"""
+# Chỉnh các ràng buộc sang tự động dựa theo arc_connect và source
+counter = 0
+while counter < len(arc_connect):
+    i, j = arc_connect[counter]
+    i_next, j_next = arc_connect[counter + 1]
+    # check if both i, j either belong to zero_demand_supply
+    if i in zero_demand_supply or j in zero_demand_supply:
+        for source in exclude_i:
+            var_name = f"x{source}_{i}_{j}"
+            var_next_name = f"x{source}_{i_next}_{j_next}"
+            if var_name in var_dict and var_next_name in var_dict:
+                model.addCons(var_dict[var_name] == var_dict[var_next_name])
 
+    if counter + 3 < len(arc_connect):
+        counter += 2
+    else:
+        break
+
+"""
+#hard code
 # ràng buộc về liên thông cho điểm nguồn
 model.addCons(var_dict['x0_0_11'] + var_dict['x0_0_3'] == 1 + var_dict['x0_2_0'] + var_dict['x0_9_0'])
-model.addCons(var_dict['x3_0_11'] + var_dict['x3_0_3'] == var_dict['x3_2_0'] + var_dict['x3_9_0'])
-# model.addCons(x0_0_11 + x3_0_11 + x0_0_3 + x3_0_3 == 1 + x0_2_0 + x3_2_0 + x0_9_0 + x3_9_0)
-# model.addCons(x0_3_2 + x3_3_2 + x0_3_6 + x3_3_6 == 1 + x0_0_3 + x3_0_3 + x0_5_3 + x3_5_3)
 model.addCons(var_dict['x0_3_2'] + var_dict['x0_3_6'] == var_dict['x0_0_3'] + var_dict['x0_5_3'])
-model.addCons(var_dict['x3_3_2'] + var_dict['x3_3_6'] == 1 + var_dict['x3_0_3'] + var_dict['x3_5_3'])
 
+model.addCons(var_dict['x3_0_11'] + var_dict['x3_0_3'] == var_dict['x3_2_0'] + var_dict['x3_9_0'])
+model.addCons(var_dict['x3_3_2'] + var_dict['x3_3_6'] == 1 + var_dict['x3_0_3'] + var_dict['x3_5_3'])
+"""
+# Huy: Chỉnh các ràng buộc sang tự động
+"""
+các điểm nguồn sẽ có 2 inbound và 2 outbound
+vd: 0 sẽ đi đến 3 hoặc 11, và 2, 9 sẽ đi đến 0
+vd: 3 sẽ đi đến 2 hoặc 6, và 0, 5 sẽ đi đến 3 
+
+outbound format: x{source}_{i}_{j} với i là một trong các điểm nguồn, có 2 xe
+vd: x0_0_3 và x3_0_3
+
+inbound format: x{source}_{i}_{j} với j là một trong các điểm nguồn, có 2 xe
+vd: x0_2_0 và x3_2_0
+"""
+src_outbound_arc = {}
+src_inbound_arc = {}
+for source in exclude_i:
+    src_outbound_arc[source] = [var for var in all_vars if f"_{source}_" in var.name]
+    src_inbound_arc[source] = [var for var in all_vars if var.name[-1] == source]
+"""
+output of outbound_arc and inbound_arc
+outbound: {'3': [x3_3_6, x0_3_6, x3_3_2, x0_3_2], '0': [x3_0_3, x0_0_3, x3_0_11, x0_0_11]}
+inbound: {'3': [x3_0_3, x0_0_3, x3_5_3, x0_5_3], '0': [x3_9_0, x0_9_0, x3_2_0, x0_2_0]}
+"""
+# Huy: dựa vào outbound và inbound để thêm ràng buộc
+for source in exclude_i:
+    for var in src_outbound_arc[source]:
+        out_sum = quicksum(src_outbound_arc[source])
+    for var in src_inbound_arc[source]:
+        in_sum = 1 + quicksum(src_inbound_arc[source])
+    model.addCons(out_sum == in_sum)
+
+"""
+#hard code
 # ràng buộc về liên thông cho điểm đích
-# model.addCons(x0_11_9 + x0_6_9 + x3_11_9 + x3_6_9 == 1)
 model.addCons(var_dict['x0_11_9'] + var_dict['x3_11_9'] + var_dict['x0_6_9'] + var_dict['x3_6_9'] == 1 + var_dict['x0_9_8'] + var_dict['x3_9_8'] + var_dict['x0_9_0'] + var_dict['x3_9_0'])
 model.addCons(var_dict['x0_6_9'] + var_dict['x3_6_9'] + var_dict['x0_6_5'] + var_dict['x3_6_5'] + 1 == var_dict['x0_3_6'] + var_dict['x3_3_6'] + var_dict['x0_8_6'] + var_dict['x3_8_6'])
+"""
+# Huy: Chỉnh các ràng buộc sang tự động
+dest_outbound_arc = {}
+dest_inbound_arc = {}
+for dest in exclude_j:
+    dest_outbound_arc[dest] = [var for var in all_vars if f"_{dest}_" in var.name]
+    dest_inbound_arc[dest] = [var for var in all_vars if var.name[-1] == dest]
+
+for dest in exclude_j:
+    for var in dest_outbound_arc[dest]:
+        out_sum = 1 + quicksum(dest_outbound_arc[dest])
+    for var in dest_inbound_arc[dest]:
+        in_sum = quicksum(dest_inbound_arc[dest])
+    model.addCons(out_sum == in_sum)
 
 
 # Huy: Tạo z{source}(z0, z3) để lưu trữ chi phí tối ưu
@@ -131,7 +200,6 @@ for source in exclude_i:
     # thêm ràng buộc để tính chi phí tối ưu
     # model.addCons(z_var == tổng(chi phí của các biến * giá trị của biến đi(x{source}_i_j)))
     model.addCons(z_var == quicksum(vars_and_costs[var.name] * var_dict[var.name] for var in source_vars if var.name in var_dict))
-    print(quicksum(vars_and_costs[var.name] * var_dict[var.name] for var in source_vars if var.name in var_dict))
 
 
 # Huy: Thêm ràng buộc để tính earliness và tardiness
@@ -141,7 +209,7 @@ for source in exclude_i:
         z_var_tw_e = model.addVar(vtype="C", name=f"z{source}TW{dest}E")
         z_var_tw_t = model.addVar(vtype="C", name=f"z{source}TW{dest}T")
         z_vars_tw[(source, dest)] = (z_var_tw_e, z_var_tw_t)
-print(z_vars_tw)
+
 
 
 for (source, dest), (z_var_tw_e, z_var_tw_t) in z_vars_tw.items():
