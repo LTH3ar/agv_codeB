@@ -86,13 +86,34 @@ for (i, j), cap in edge_vars.items():
         sum_ij = quicksum(var_dict[name] for name in vars_by_index_i[i] if name in vars_by_index_j[j] and name in var_dict)
         model.addCons(sum_ij <= cap)
 
-# Thêm ràng buộc: tổng tất cả các xij = tổng tất cả các xjk cho mỗi j
-for j in vars_by_index_j.keys():
-	if j in vars_by_index_i and j not in exclude_i and j not in exclude_j:
-		#model.addCons(quicksum(model.getVarByName(name) for name in vars_by_index_i[j]) == quicksum(model.getVarByName(name) for name in vars_by_index_j[j]))
-		sum_i = quicksum(var_dict[name] for name in vars_by_index_i[j] if name in var_dict)
-		sum_j = quicksum(var_dict[name] for name in vars_by_index_j[j] if name in var_dict)
-		model.addCons(sum_i == sum_j)
+
+# Huy: Ràng buộc về liên thông
+# Add constraints to the model
+# hard code
+model.addCons(var_dict['x0_3_2'] == var_dict['x0_2_0'])
+model.addCons(var_dict['x3_3_2'] == var_dict['x3_2_0'])
+
+model.addCons(var_dict['x0_6_5'] == var_dict['x0_5_3'])
+model.addCons(var_dict['x3_6_5'] == var_dict['x3_5_3'])
+
+model.addCons(var_dict['x0_9_8'] == var_dict['x0_8_6'])
+model.addCons(var_dict['x3_9_8'] == var_dict['x3_8_6'])
+
+model.addCons(var_dict['x0_0_11'] == var_dict['x0_11_9'])
+model.addCons(var_dict['x3_0_11'] == var_dict['x3_11_9'])
+
+# ràng buộc về liên thông cho điểm nguồn
+model.addCons(var_dict['x0_0_11'] + var_dict['x0_0_3'] == 1 + var_dict['x0_2_0'] + var_dict['x0_9_0'])
+model.addCons(var_dict['x3_0_11'] + var_dict['x3_0_3'] == var_dict['x3_2_0'] + var_dict['x3_9_0'])
+# model.addCons(x0_0_11 + x3_0_11 + x0_0_3 + x3_0_3 == 1 + x0_2_0 + x3_2_0 + x0_9_0 + x3_9_0)
+# model.addCons(x0_3_2 + x3_3_2 + x0_3_6 + x3_3_6 == 1 + x0_0_3 + x3_0_3 + x0_5_3 + x3_5_3)
+model.addCons(var_dict['x0_3_2'] + var_dict['x0_3_6'] == var_dict['x0_0_3'] + var_dict['x0_5_3'])
+model.addCons(var_dict['x3_3_2'] + var_dict['x3_3_6'] == 1 + var_dict['x3_0_3'] + var_dict['x3_5_3'])
+
+# ràng buộc về liên thông cho điểm đích
+# model.addCons(x0_11_9 + x0_6_9 + x3_11_9 + x3_6_9 == 1)
+model.addCons(var_dict['x0_11_9'] + var_dict['x3_11_9'] + var_dict['x0_6_9'] + var_dict['x3_6_9'] == 1 + var_dict['x0_9_8'] + var_dict['x3_9_8'] + var_dict['x0_9_0'] + var_dict['x3_9_0'])
+model.addCons(var_dict['x0_6_9'] + var_dict['x3_6_9'] + var_dict['x0_6_5'] + var_dict['x3_6_5'] + 1 == var_dict['x0_3_6'] + var_dict['x3_3_6'] + var_dict['x0_8_6'] + var_dict['x3_8_6'])
 
 
 # Huy: Tạo z{source}(z0, z3) để lưu trữ chi phí tối ưu
