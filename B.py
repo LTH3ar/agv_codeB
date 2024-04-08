@@ -9,8 +9,6 @@ exclude_i = set()
 exclude_j = set()
 
 # Huy: Khởi tạo tập hợp lưu trữ nguồn các xe đi từ điểm nguồn
-source_nodes = set() # format: {source}
-dest_nodes = set() # format: {dest}
 zero_demand_nodes = set() # format: {node} # lưu trữ các điểm có demand = 0 (lấy từ trong arc)
 
 # Huy: Tạo một từ điển để lưu trữ biến cho mỗi cung
@@ -34,19 +32,16 @@ with open('simpleInput2.txt', 'r') as file:
                 exclude_i.add(parts[1])
                 vars_by_index_i.setdefault(index, [])
                 # Lưu trữ các điểm nguồn
-                source_nodes.add(parts[1])
             elif parts[2] == '-1':
                 exclude_j.add(parts[1])
                 vars_by_index_j.setdefault(index, [])
-                # Lưu trữ các điểm đích
-                dest_nodes.add(parts[1])
 
         elif parts[0] == 'a':
             # i là điểm nguồn, j là điểm đích, cij là chi phí
             i, j, cap, cij = parts[1], parts[2], int(parts[4]), int(parts[5])
             if i not in exclude_i and i not in exclude_j:
                 zero_demand_nodes.add(i)
-            for source in source_nodes:
+            for source in exclude_i:
                 # Huy: Tạo biến quyết định x{source}_i_j, source là điểm xe xuất phát, i là điểm nguồn, j là điểm đích
                 var_name = f"x{source}_{i}_{j}"
                 model.addVar(vtype="B", name=var_name)
@@ -72,7 +67,7 @@ var_dict = {v.name: v for v in all_vars}
 
 # Huy: Thêm ràng buộc hướng đi của xe
 # Ràng buộc về điểm xuất phát của xe 0 và xe 3
-for source in source_nodes:
+for source in exclude_i:
     # tìm trong danh sách các biến có tên chứa source như x0_0_3, x3_0_3
     source_vars = [var for var in all_vars if f"x{source}_{source}" in var.name]
     print(f"source_vars: {source_vars}")
@@ -81,7 +76,7 @@ for source in source_nodes:
 
 """
 # Ràng buộc về điểm đích của xe 0 và xe 3
-for dest in dest_nodes:
+for dest in exclude_j:
     # tìm trong danh sách các biến có tên chứa dest như x0_11_9, x0_6_9, x3_11_9, x3_6_9
     dest_vars = [var for var in all_vars if var.name[-1] == dest]
     print(f"dest_vars: {dest_vars}")
@@ -103,27 +98,16 @@ for (i, j), cap in edge_vars.items():
         model.addCons(sum_ij <= cap)
 
 
-# Thêm ràng buộc: tổng tất cả các xij = tổng tất cả các xjk cho mỗi j
-for j in vars_by_index_j.keys():
-    if j in vars_by_index_i and j not in exclude_i and j not in exclude_j:
-        #model.addCons(quicksum(model.getVarByName(name) for name in vars_by_index_i[j]) == quicksum(model.getVarByName(name) for name in vars_by_index_j[j]))
-        sum_i = quicksum(var_dict[name] for name in vars_by_index_i[j] if name in var_dict)
-        print(f"sum_i: {sum_i}")
-        sum_j = quicksum(var_dict[name] for name in vars_by_index_j[j] if name in var_dict)
-        print(f"sum_j: {sum_j}")
-        model.addCons(sum_i == sum_j)
-
-
 
 
 # Huy: Tạo z{source}(z0, z3) để lưu trữ chi phí tối ưu
 z_vars = {}
-for source in source_nodes:
+for source in exclude_i:
     z_var_name = f"z{source}"
     z_vars[source] = model.addVar(vtype="I", name=z_var_name)
 
 # Huy: Thêm ràng buộc để tính chi phí tối ưu
-for source in source_nodes:
+for source in exclude_i:
     z_var = z_vars[source]
     #print(f"{source} = {z_var}")
     # tìm trong danh sách các biến có tên chứa source như x0_0_3, x3_0_3
@@ -136,11 +120,13 @@ for source in source_nodes:
 
 # Huy: Thêm ràng buộc để tính earliness và tardiness
 z_vars_tw = {}
-for source in source_nodes:
-    for dest in dest_nodes:
+for source in exclude_i:
+    for dest in exclude_j:
         z_var_tw_e = model.addVar(vtype="C", name=f"z{source}TW{dest}E")
         z_var_tw_t = model.addVar(vtype="C", name=f"z{source}TW{dest}T")
         z_vars_tw[(source, dest)] = (z_var_tw_e, z_var_tw_t)
+
+
 for (source, dest), (z_var_tw_e, z_var_tw_t) in z_vars_tw.items():
     z_var = z_vars[source]
     # tìm trong danh sách các biến có tên chứa x{source)_i_{dest} như x0_3_6, x0_8_6
