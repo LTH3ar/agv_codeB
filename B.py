@@ -74,20 +74,9 @@ for source in exclude_i:
     # thêm ràng buộc để điểm xuất phát của xe 0 và xe 3
     model.addCons(quicksum(source_vars) == 1)
 
-"""
-# Ràng buộc về điểm đích của xe 0 và xe 3
-for dest in exclude_j:
-    # tìm trong danh sách các biến có tên chứa dest như x0_11_9, x0_6_9, x3_11_9, x3_6_9
-    dest_vars = [var for var in all_vars if var.name[-1] == dest]
-    print(f"dest_vars: {dest_vars}")
-    # thêm ràng buộc để điểm đích của xe 0 và xe 3
-    model.addCons(quicksum(dest_vars) == 1)
-"""
-
 # Thêm ràng buộc: tổng tất cả các xji = 1 với mỗi j có giá trị '-1'
 for j, var_names in vars_by_index_j.items():
     if j in exclude_j:
-        #model.addCons(quicksum(model.getVarByName(name) for name in var_names) == 1)
         model.addCons(quicksum(var_dict[name] for name in var_names if name in var_dict) == 1)
 
 # Huy: Thêm ràng buộc để đảm bảo rằng tổng số xe di chuyển trên mỗi cung không vượt quá giới hạn cho phép
@@ -97,7 +86,13 @@ for (i, j), cap in edge_vars.items():
         sum_ij = quicksum(var_dict[name] for name in vars_by_index_i[i] if name in vars_by_index_j[j] and name in var_dict)
         model.addCons(sum_ij <= cap)
 
-
+# Thêm ràng buộc: tổng tất cả các xij = tổng tất cả các xjk cho mỗi j
+for j in vars_by_index_j.keys():
+	if j in vars_by_index_i and j not in exclude_i and j not in exclude_j:
+		#model.addCons(quicksum(model.getVarByName(name) for name in vars_by_index_i[j]) == quicksum(model.getVarByName(name) for name in vars_by_index_j[j]))
+		sum_i = quicksum(var_dict[name] for name in vars_by_index_i[j] if name in var_dict)
+		sum_j = quicksum(var_dict[name] for name in vars_by_index_j[j] if name in var_dict)
+		model.addCons(sum_i == sum_j)
 
 
 # Huy: Tạo z{source}(z0, z3) để lưu trữ chi phí tối ưu
@@ -149,8 +144,8 @@ for (source, dest), (z_var_tw_e, z_var_tw_t) in z_vars_tw.items():
     model.addCons(z_var_tw_t >= 0)
 
 
+# Tối ưu hóa mô hình
 #model.setObjective(quicksum(vars_and_costs[var_name] * var_dict[var_name] for var_name in vars_and_costs), "minimize")
-
 
 # Huy: Tính chi phí tối ưu
 alpha = 1
@@ -163,7 +158,6 @@ print(alpha_sum)
 beta_sum = quicksum(beta * z_var_tw for (_, _), (z_var_tw_e, z_var_tw_t) in z_vars_tw.items() for z_var_tw in (z_var_tw_e, z_var_tw_t))
 print(beta_sum)
 model.setObjective(alpha_sum + beta_sum, "minimize")
-
 
 
 model.optimize()
