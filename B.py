@@ -107,10 +107,10 @@ for source in exclude_i:
     #print(f"{source} = {z_var}")
     # tìm trong danh sách các biến có tên chứa source như x0_0_3, x3_0_3
     source_vars = [var for var in all_vars if f"x{source}_" in var.name]
-    #print(source_vars)
     # thêm ràng buộc để tính chi phí tối ưu
     # model.addCons(z_var == tổng(chi phí của các biến * giá trị của biến đi(x{source}_i_j)))
     model.addCons(z_var == quicksum(vars_and_costs[var.name] * var_dict[var.name] for var in source_vars if var.name in var_dict))
+    print(quicksum(vars_and_costs[var.name] * var_dict[var.name] for var in source_vars if var.name in var_dict))
 
 
 # Huy: Thêm ràng buộc để tính earliness và tardiness
@@ -120,6 +120,7 @@ for source in exclude_i:
         z_var_tw_e = model.addVar(vtype="C", name=f"z{source}TW{dest}E")
         z_var_tw_t = model.addVar(vtype="C", name=f"z{source}TW{dest}T")
         z_vars_tw[(source, dest)] = (z_var_tw_e, z_var_tw_t)
+print(z_vars_tw)
 
 
 for (source, dest), (z_var_tw_e, z_var_tw_t) in z_vars_tw.items():
@@ -129,23 +130,17 @@ for (source, dest), (z_var_tw_e, z_var_tw_t) in z_vars_tw.items():
     for var in all_vars:
         if (f"x{source}" in var.name) and (var.name[-1] == dest):
             z_vars_src_dest[var.name] = var
-
     # tìm gía trị của tardiness và earliness
     earliness, tardiness = earliness_and_tardiness[dest]
     #print(earliness, tardiness)
 
     # thêm ràng buộc để tính earliness và tardiness
     vars_sum = quicksum(z_vars_src_dest.values())
-    #print(vars_sum)
 
     model.addCons(z_var_tw_t >= (z_var - tardiness) * vars_sum)
     model.addCons(z_var_tw_e >= (earliness * vars_sum) - z_var)
     model.addCons(z_var_tw_e >= 0)
     model.addCons(z_var_tw_t >= 0)
-
-
-# Tối ưu hóa mô hình
-#model.setObjective(quicksum(vars_and_costs[var_name] * var_dict[var_name] for var_name in vars_and_costs), "minimize")
 
 # Huy: Tính chi phí tối ưu
 alpha = 1
@@ -153,10 +148,8 @@ beta = 1
 # Huy: Tính chi phí tối ưu
 # alpha with z_vars
 alpha_sum = quicksum(alpha * z_var for z_var in z_vars.values())
-print(alpha_sum)
 # beta with z_vars_tw
 beta_sum = quicksum(beta * z_var_tw for (_, _), (z_var_tw_e, z_var_tw_t) in z_vars_tw.items() for z_var_tw in (z_var_tw_e, z_var_tw_t))
-print(beta_sum)
 model.setObjective(alpha_sum + beta_sum, "minimize")
 
 

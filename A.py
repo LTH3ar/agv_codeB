@@ -109,7 +109,7 @@ z3TW6E = model.addVar(vtype = "C", name=f"z3TW6E")
 z3TW6T = model.addVar(vtype = "C", name=f"z3TW6T")
 #model.addCons(z3TW1T >= z3 - 9*x3_3_6 - 9*x3_8_6)
 model.addCons(z3TW6T >= (z3 - 9)*(x3_3_6 + x3_8_6))
-model.addCons(z3TW6E >= 7*x3_3_6 + 7*x3_8_6 - z3)
+model.addCons(z3TW6E >= 7*(x3_3_6 + x3_8_6) - z3)
 model.addCons(z3TW6E >= 0)
 model.addCons(z3TW6T >= 0)
 
