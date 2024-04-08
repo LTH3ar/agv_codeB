@@ -79,6 +79,7 @@ for source in source_nodes:
     # thêm ràng buộc để điểm xuất phát của xe 0 và xe 3
     model.addCons(quicksum(source_vars) == 1)
 
+"""
 # Ràng buộc về điểm đích của xe 0 và xe 3
 for dest in dest_nodes:
     # tìm trong danh sách các biến có tên chứa dest như x0_11_9, x0_6_9, x3_11_9, x3_6_9
@@ -86,7 +87,13 @@ for dest in dest_nodes:
     print(f"dest_vars: {dest_vars}")
     # thêm ràng buộc để điểm đích của xe 0 và xe 3
     model.addCons(quicksum(dest_vars) == 1)
+"""
 
+# Thêm ràng buộc: tổng tất cả các xji = 1 với mỗi j có giá trị '-1'
+for j, var_names in vars_by_index_j.items():
+    if j in exclude_j:
+        #model.addCons(quicksum(model.getVarByName(name) for name in var_names) == 1)
+        model.addCons(quicksum(var_dict[name] for name in var_names if name in var_dict) == 1)
 
 # Huy: Thêm ràng buộc để đảm bảo rằng tổng số xe di chuyển trên mỗi cung không vượt quá giới hạn cho phép
 # kiểm tra trong edge_vars, nếu i, j có trong edge_vars thì thêm ràng buộc
