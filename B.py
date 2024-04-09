@@ -107,6 +107,8 @@ model.addCons(var_dict['x3_9_8'] == var_dict['x3_8_6'])
 model.addCons(var_dict['x0_0_11'] == var_dict['x0_11_9'])
 model.addCons(var_dict['x3_0_11'] == var_dict['x3_11_9'])
 """
+
+"""
 # Chỉnh các ràng buộc sang tự động dựa theo arc_connect và source
 counter = 0
 while counter < len(arc_connect):
@@ -124,6 +126,25 @@ while counter < len(arc_connect):
         counter += 2
     else:
         break
+"""
+
+# Huy: Chỉnh các ràng buộc sang tự động
+# tạo dict theo từng node không có demand để lưu trữ các biến arc của node đó
+# lưu format: {node: [arc1, arc2,...} với các giá trị arc thuộc arc_connect
+zero_demand_supply_node_dict = {}
+for node in zero_demand_supply:
+    for arc_i, arc_j in arc_connect:
+        if arc_i == node:
+            # append both arc_i, arc_j to the list
+            zero_demand_supply_node_dict.setdefault(node, []).append((arc_i, arc_j))
+        elif arc_j == node:
+            # append both arc_i, arc_j to the list
+            zero_demand_supply_node_dict.setdefault(node, []).append((arc_i, arc_j))
+
+for source in exclude_i:
+    for node, arcs in zero_demand_supply_node_dict.items():
+        model.addCons(var_dict[f"x{source}_{arcs[0][0]}_{arcs[0][1]}"] == var_dict[f"x{source}_{arcs[1][0]}_{arcs[1][1]}"])
+
 
 """
 #hard code
