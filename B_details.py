@@ -34,7 +34,7 @@ earliness_and_tardiness = {} # format: {node: (earliness, tardiness)}
 Đọc file và tạo biến quyết định
 """
 # Đọc file và tạo biến quyết định
-with open('TSG_0.txt', 'r') as file:
+with open('simpleInput2.txt', 'r') as file:
     for line in file:
         parts = line.strip().split()
         if parts[0] == 'n':
@@ -319,8 +319,9 @@ cách tính toán ràng buộc:
 - tạo biến z{source} để lưu trữ chi phí tối ưu
 """
 # Huy: Tạo z{source}(z0, z3) để lưu trữ chi phí tối ưu
-z_vars = {}
+
 if len(earliness_and_tardiness) > 0:
+    z_vars = {}
     for source in exclude_i:
         z_var_name = f"z{source}"
         z_vars[source] = model.addVar(vtype="I", name=z_var_name)
@@ -366,7 +367,7 @@ if len(earliness_and_tardiness) > 0:
 
 
 # Huy: Tính chi phí tối ưu
-if len(z_vars) > 0:
+if len(earliness_and_tardiness) > 0:
     alpha = 1
     beta = 1
     # Huy: Tính chi phí tối ưu
