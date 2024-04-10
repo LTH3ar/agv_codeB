@@ -134,7 +134,7 @@ def on_click(event, G, flow_dict):
 
 
 # Run
-file_name = 'simple.txt'
+file_name = 'input.txt'
 problem_info, node_descriptors, arc_descriptors = read_dimacs_file(file_name)
 
 # Print problem information, node descriptors, and arc descriptors
@@ -168,5 +168,5 @@ print("\nSolution Flow:")
 for u, v in nxGraph.edges():
     if flow_dict[u][v] > 0:
         print(f"Flow from {u} to {v}: {flow_dict[u][v]}")
-draw_graph(nxGraph, flow_dict)
+#draw_graph(nxGraph, flow_dict)
 print("\nMinimum Cost:", flow_cost)

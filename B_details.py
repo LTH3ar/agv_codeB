@@ -34,9 +34,10 @@ earliness_and_tardiness = {} # format: {node: (earliness, tardiness)}
 Đọc file và tạo biến quyết định
 """
 # Đọc file và tạo biến quyết định
-with open('simpleInput2.txt', 'r') as file:
+with open('input.txt', 'r') as file:
     for line in file:
-        parts = line.strip().split()
+        # split delimeter ' ' để lấy các phần tử trong dòng
+        parts = line.strip().split(' ')
         if parts[0] == 'n':
             # Lưu trữ chỉ số i hoặc j để sau này thêm ràng buộc
             index = parts[1]
@@ -51,6 +52,7 @@ with open('simpleInput2.txt', 'r') as file:
         elif parts[0] == 'a':
             # i là điểm nguồn, j là điểm đích, cij là chi phí
             i, j, cap, cij = parts[1], parts[2], int(parts[4]), int(parts[5])
+            #i, j, cap, cij = parts[1], parts[2], int(1), int(parts[3])
             # Huy: Lưu trữ các cung không tự động sort vị trí của các biến
             arc_connect.append((i, j))
             for source in exclude_i:
@@ -65,7 +67,7 @@ with open('simpleInput2.txt', 'r') as file:
                 # Huy: Lưu trữ biến capacity cho mỗi cung
                 edge_vars[(i, j)] = cap
 
-                if i not in exclude_i and i not in exclude_j:
+                if (i not in exclude_i) and (i not in exclude_j) and (i not in zero_demand_supply):
                     zero_demand_supply.add(i)
 
         # Huy: Thêm ràng buộc về earliness và tardiness đọc các dòng comment 'c' theo sau là 'tw'
@@ -73,29 +75,6 @@ with open('simpleInput2.txt', 'r') as file:
             # Huy: kiểm tra xem có 'tw'
             if len(parts) > 1 and parts[1] == 'tw':
                 earliness_and_tardiness[parts[2]] = (int(parts[3]), int(parts[4]))
-
-
-
-# test output
-print("vars_by_index_i")
-print(vars_by_index_i)
-print("vars_by_index_j")
-print(vars_by_index_j)
-print("vars_and_costs")
-print(vars_and_costs)
-print("exclude_i")
-print(exclude_i)
-print("exclude_j")
-print(exclude_j)
-print("arc_connect")
-print(arc_connect)
-print("zero_demand_supply")
-print(zero_demand_supply)
-print("edge_vars")
-print(edge_vars)
-print("earliness_and_tardiness")
-print(earliness_and_tardiness)
-
 
 """
 all_vars: lưu trữ tất cả các biến từ mô hình
@@ -153,6 +132,7 @@ vd: cung từ node 3 đến node 6 có capacity là 1 -> x0_3_6 + x3_3_6 <= 1
 for (i, j), cap in edge_vars.items():
     if i in vars_by_index_i and j in vars_by_index_j:
         sum_ij = quicksum(var_dict[name] for name in vars_by_index_i[i] if name in vars_by_index_j[j] and name in var_dict)
+        print(f"sum_ij: {sum_ij}")
         model.addCons(sum_ij <= cap)
 
 
@@ -219,21 +199,33 @@ for node in zero_demand_supply:
     for arc_i, arc_j in arc_connect:
         if arc_i == node:
             # append both arc_i, arc_j to the list
+            #print(f"arc_i--> PUSH: {arc_i}, arc_j: {arc_j}")
             zero_demand_supply_node_dict_out.setdefault(node, []).append((arc_i, arc_j))
+            #print(f"arc_i--> DONE: {arc_i}, arc_j: {arc_j}")
+
         elif arc_j == node:
             # append both arc_i, arc_j to the list
+            #print(f"arc_j--> PUSH: {arc_i}, arc_j: {arc_j}")
             zero_demand_supply_node_dict_in.setdefault(node, []).append((arc_i, arc_j))
+            #print(f"arc_j--> DONE: {arc_i}, arc_j: {arc_j}")
+
 
 for source in exclude_i:
     for node_dict_in, arcs_dict_in in zero_demand_supply_node_dict_in.items():
         for node_dict_out, arcs_dict_out in zero_demand_supply_node_dict_out.items():
             if node_dict_in == node_dict_out:
                 # sum all arc in
+                #print(f"source, arcs_dict_in: {source}, {arcs_dict_in}")
                 sum_arc_in = quicksum(var_dict[f"x{source}_{i}_{j}"] for i, j in arcs_dict_in)
+                #print(f"sum_arc_in: {sum_arc_in}")
                 # sum all arc out
+                #print(f"source, arcs_dict_out: {source}, {arcs_dict_out}")
                 sum_arc_out = quicksum(var_dict[f"x{source}_{i}_{j}"] for i, j in arcs_dict_out)
+                #print(f"sum_arc_out: {sum_arc_out}")
                 # add constraint
                 model.addCons(sum_arc_in == sum_arc_out)
+                break
+
 
 """
 #hard code
@@ -266,8 +258,22 @@ vd: x0_2_0 và x3_2_0
 src_outbound_arc = {}
 src_inbound_arc = {}
 for source in exclude_i:
-    src_outbound_arc[source] = [var for var in all_vars if f"_{source}_" in var.name]
-    src_inbound_arc[source] = [var for var in all_vars if var.name[-1] == source]
+    #src_outbound_arc[source] = [var for var in all_vars if f"_{source}_" in var.name]
+    #src_inbound_arc[source] = [var for var in all_vars if var.name[-1] == source]
+    for var in all_vars:
+        # split var name with delimiter '_'
+        parts = var.name.split('_')
+        # init inbound arc
+        src_inbound_arc.setdefault(source, [])
+        # init outbound arc
+        src_outbound_arc.setdefault(source, [])
+        # check if last part is source
+        if parts[-1] == source:
+            src_inbound_arc[source].append(var)
+        if parts[1] == source:
+            src_outbound_arc[source].append(var)
+
+
 """
 output of outbound_arc and inbound_arc
 outbound: {'3': [x3_3_6, x0_3_6, x3_3_2, x0_3_2], '0': [x3_0_3, x0_0_3, x3_0_11, x0_0_11]}
@@ -278,7 +284,9 @@ print(src_outbound_arc)
 print(src_inbound_arc)
 for source in exclude_i:
     out_sum = quicksum(src_outbound_arc[source])
+    print(f"out_sum: {out_sum}")
     in_sum = 1 + quicksum(src_inbound_arc[source])
+    print(f"in_sum: {in_sum}")
     model.addCons(out_sum == in_sum)
 
 
@@ -302,12 +310,28 @@ cách tính toán ràng buộc:
 dest_outbound_arc = {}
 dest_inbound_arc = {}
 for dest in exclude_j:
-    dest_outbound_arc[dest] = [var for var in all_vars if f"_{dest}_" in var.name]
-    dest_inbound_arc[dest] = [var for var in all_vars if var.name[-1] == dest]
+    #dest_outbound_arc[dest] = [var for var in all_vars if f"_{dest}_" in var.name]
+    #dest_inbound_arc[dest] = [var for var in all_vars if var.name[-1] == dest]
+    for var in all_vars:
+        # split var name with delimiter '_'
+        parts = var.name.split('_')
+        # init inbound arc
+        dest_inbound_arc.setdefault(dest, [])
+        # init outbound arc
+        dest_outbound_arc.setdefault(dest, [])
+        # check if last part is dest
+        if parts[-1] == dest:
+            dest_inbound_arc[dest].append(var)
+        if parts[1] == dest:
+            dest_outbound_arc[dest].append(var)
 
+print(dest_outbound_arc)
+print(dest_inbound_arc)
 for dest in exclude_j:
     out_sum = 1 + quicksum(dest_outbound_arc[dest])
+    print(f"out_sum: {out_sum}")
     in_sum = quicksum(dest_inbound_arc[dest])
+    print(f"in_sum: {in_sum}")
     model.addCons(out_sum == in_sum)
 
 
@@ -350,7 +374,9 @@ if len(earliness_and_tardiness) > 0:
         # tìm trong danh sách các biến có tên chứa x{source)_i_{dest} như x0_3_6, x0_8_6
         z_vars_src_dest = {}
         for var in all_vars:
-            if (f"x{source}" in var.name) and (var.name[-1] == dest):
+            # split var name with delimiter '_'
+            parts = var.name.split('_')
+            if (f"x{source}" in var.name) and (parts[-1] == dest):
                 z_vars_src_dest[var.name] = var
         # tìm gía trị của tardiness và earliness
         earliness, tardiness = earliness_and_tardiness[dest]
@@ -377,8 +403,9 @@ if len(earliness_and_tardiness) > 0:
     beta_sum = quicksum(beta * z_var_tw for (_, _), (z_var_tw_e, z_var_tw_t) in z_vars_tw.items() for z_var_tw in (z_var_tw_e, z_var_tw_t))
     model.setObjective(alpha_sum + beta_sum, "minimize")
 else:
-    print("Không có biến z để tính chi phí tối ưu.")
+    print("Không có biến z")
     model.setObjective(quicksum(vars_and_costs[var.name] * var_dict[var.name] for var in all_vars if var.name in var_dict), "minimize")
+    #model.setObjective(quicksum(vars_and_costs[var_name] * var_dict[var_name] for var_name in vars_and_costs), "minimize")
 
 model.optimize()
 if model.getStatus() == "optimal":
