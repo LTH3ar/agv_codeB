@@ -34,17 +34,17 @@ earliness_and_tardiness = {} # format: {node: (earliness, tardiness)}
 Đọc file và tạo biến quyết định
 """
 # Đọc file và tạo biến quyết định
-with open('simpleInput2.txt', 'r') as file:
+with open('TSG_0.txt', 'r') as file:
     for line in file:
         parts = line.strip().split()
         if parts[0] == 'n':
             # Lưu trữ chỉ số i hoặc j để sau này thêm ràng buộc
             index = parts[1]
-            if parts[2] == '1':
+            if int(parts[2]) > 0:
                 exclude_i.add(parts[1])
                 vars_by_index_i.setdefault(index, [])
                 # Lưu trữ các điểm nguồn
-            elif parts[2] == '-1':
+            elif int(parts[2]) < 0:
                 exclude_j.add(parts[1])
                 vars_by_index_j.setdefault(index, [])
 
@@ -71,8 +71,31 @@ with open('simpleInput2.txt', 'r') as file:
         # Huy: Thêm ràng buộc về earliness và tardiness đọc các dòng comment 'c' theo sau là 'tw'
         elif parts[0] == 'c':
             # Huy: kiểm tra xem có 'tw'
-            if parts[1] == 'tw':
+            if len(parts) > 1 and parts[1] == 'tw':
                 earliness_and_tardiness[parts[2]] = (int(parts[3]), int(parts[4]))
+
+
+
+# test output
+print("vars_by_index_i")
+print(vars_by_index_i)
+print("vars_by_index_j")
+print(vars_by_index_j)
+print("vars_and_costs")
+print(vars_and_costs)
+print("exclude_i")
+print(exclude_i)
+print("exclude_j")
+print(exclude_j)
+print("arc_connect")
+print(arc_connect)
+print("zero_demand_supply")
+print(zero_demand_supply)
+print("edge_vars")
+print(edge_vars)
+print("earliness_and_tardiness")
+print(earliness_and_tardiness)
+
 
 """
 all_vars: lưu trữ tất cả các biến từ mô hình
@@ -189,22 +212,28 @@ while counter < len(arc_connect):
 # Huy: Chỉnh các ràng buộc sang tự động
 # tạo dict theo từng node không có demand để lưu trữ các biến arc của node đó
 # lưu format: {node: [arc1, arc2,...} với các giá trị arc thuộc arc_connect
-zero_demand_supply_node_dict = {}
+
+zero_demand_supply_node_dict_in = {}
+zero_demand_supply_node_dict_out = {}
 for node in zero_demand_supply:
     for arc_i, arc_j in arc_connect:
         if arc_i == node:
             # append both arc_i, arc_j to the list
-            zero_demand_supply_node_dict.setdefault(node, []).append((arc_i, arc_j))
+            zero_demand_supply_node_dict_out.setdefault(node, []).append((arc_i, arc_j))
         elif arc_j == node:
             # append both arc_i, arc_j to the list
-            zero_demand_supply_node_dict.setdefault(node, []).append((arc_i, arc_j))
+            zero_demand_supply_node_dict_in.setdefault(node, []).append((arc_i, arc_j))
 
 for source in exclude_i:
-    for node, arcs in zero_demand_supply_node_dict.items():
-        model.addCons(var_dict[f"x{source}_{arcs[0][0]}_{arcs[0][1]}"] == var_dict[f"x{source}_{arcs[1][0]}_{arcs[1][1]}"])
-
-
-
+    for node_dict_in, arcs_dict_in in zero_demand_supply_node_dict_in.items():
+        for node_dict_out, arcs_dict_out in zero_demand_supply_node_dict_out.items():
+            if node_dict_in == node_dict_out:
+                # sum all arc in
+                sum_arc_in = quicksum(var_dict[f"x{source}_{i}_{j}"] for i, j in arcs_dict_in)
+                # sum all arc out
+                sum_arc_out = quicksum(var_dict[f"x{source}_{i}_{j}"] for i, j in arcs_dict_out)
+                # add constraint
+                model.addCons(sum_arc_in == sum_arc_out)
 
 """
 #hard code
@@ -245,11 +274,11 @@ outbound: {'3': [x3_3_6, x0_3_6, x3_3_2, x0_3_2], '0': [x3_0_3, x0_0_3, x3_0_11,
 inbound: {'3': [x3_0_3, x0_0_3, x3_5_3, x0_5_3], '0': [x3_9_0, x0_9_0, x3_2_0, x0_2_0]}
 """
 # Huy: dựa vào outbound và inbound để thêm ràng buộc
+print(src_outbound_arc)
+print(src_inbound_arc)
 for source in exclude_i:
-    for var in src_outbound_arc[source]:
-        out_sum = quicksum(src_outbound_arc[source])
-    for var in src_inbound_arc[source]:
-        in_sum = 1 + quicksum(src_inbound_arc[source])
+    out_sum = quicksum(src_outbound_arc[source])
+    in_sum = 1 + quicksum(src_inbound_arc[source])
     model.addCons(out_sum == in_sum)
 
 
@@ -277,10 +306,8 @@ for dest in exclude_j:
     dest_inbound_arc[dest] = [var for var in all_vars if var.name[-1] == dest]
 
 for dest in exclude_j:
-    for var in dest_outbound_arc[dest]:
-        out_sum = 1 + quicksum(dest_outbound_arc[dest])
-    for var in dest_inbound_arc[dest]:
-        in_sum = quicksum(dest_inbound_arc[dest])
+    out_sum = 1 + quicksum(dest_outbound_arc[dest])
+    in_sum = quicksum(dest_inbound_arc[dest])
     model.addCons(out_sum == in_sum)
 
 
@@ -293,62 +320,64 @@ cách tính toán ràng buộc:
 """
 # Huy: Tạo z{source}(z0, z3) để lưu trữ chi phí tối ưu
 z_vars = {}
-for source in exclude_i:
-    z_var_name = f"z{source}"
-    z_vars[source] = model.addVar(vtype="I", name=z_var_name)
+if len(earliness_and_tardiness) > 0:
+    for source in exclude_i:
+        z_var_name = f"z{source}"
+        z_vars[source] = model.addVar(vtype="I", name=z_var_name)
 
-# Huy: Thêm ràng buộc để tính chi phí tối ưu
-for source in exclude_i:
-    z_var = z_vars[source]
-    #print(f"{source} = {z_var}")
-    # tìm trong danh sách các biến có tên chứa source như x0_0_3, x3_0_3
-    source_vars = [var for var in all_vars if f"x{source}_" in var.name]
-    # thêm ràng buộc để tính chi phí tối ưu
-    # model.addCons(z_var == tổng(chi phí của các biến * giá trị của biến đi(x{source}_i_j)))
-    model.addCons(z_var == quicksum(vars_and_costs[var.name] * var_dict[var.name] for var in source_vars if var.name in var_dict))
+    # Huy: Thêm ràng buộc để tính chi phí tối ưu
+    for source in exclude_i:
+        z_var = z_vars[source]
+        #print(f"{source} = {z_var}")
+        # tìm trong danh sách các biến có tên chứa source như x0_0_3, x3_0_3
+        source_vars = [var for var in all_vars if f"x{source}_" in var.name]
+        # thêm ràng buộc để tính chi phí tối ưu
+        # model.addCons(z_var == tổng(chi phí của các biến * giá trị của biến đi(x{source}_i_j)))
+        model.addCons(z_var == quicksum(vars_and_costs[var.name] * var_dict[var.name] for var in source_vars if var.name in var_dict))
 
 
-# Huy: Thêm ràng buộc để tính earliness và tardiness
-z_vars_tw = {}
-for source in exclude_i:
-    for dest in exclude_j:
-        z_var_tw_e = model.addVar(vtype="C", name=f"z{source}TW{dest}E")
-        z_var_tw_t = model.addVar(vtype="C", name=f"z{source}TW{dest}T")
-        z_vars_tw[(source, dest)] = (z_var_tw_e, z_var_tw_t)
+    # Huy: Thêm ràng buộc để tính earliness và tardiness
+    z_vars_tw = {}
+    for source in exclude_i:
+        for dest in exclude_j:
+            z_var_tw_e = model.addVar(vtype="C", name=f"z{source}TW{dest}E")
+            z_var_tw_t = model.addVar(vtype="C", name=f"z{source}TW{dest}T")
+            z_vars_tw[(source, dest)] = (z_var_tw_e, z_var_tw_t)
 
-for (source, dest), (z_var_tw_e, z_var_tw_t) in z_vars_tw.items():
-    z_var = z_vars[source]
-    # tìm trong danh sách các biến có tên chứa x{source)_i_{dest} như x0_3_6, x0_8_6
-    z_vars_src_dest = {}
-    for var in all_vars:
-        if (f"x{source}" in var.name) and (var.name[-1] == dest):
-            z_vars_src_dest[var.name] = var
-    # tìm gía trị của tardiness và earliness
-    earliness, tardiness = earliness_and_tardiness[dest]
-    #print(earliness, tardiness)
+    for (source, dest), (z_var_tw_e, z_var_tw_t) in z_vars_tw.items():
+        z_var = z_vars[source]
+        # tìm trong danh sách các biến có tên chứa x{source)_i_{dest} như x0_3_6, x0_8_6
+        z_vars_src_dest = {}
+        for var in all_vars:
+            if (f"x{source}" in var.name) and (var.name[-1] == dest):
+                z_vars_src_dest[var.name] = var
+        # tìm gía trị của tardiness và earliness
+        earliness, tardiness = earliness_and_tardiness[dest]
 
-    # thêm ràng buộc để tính earliness và tardiness
-    vars_sum = quicksum(z_vars_src_dest.values())
+        # thêm ràng buộc để tính earliness và tardiness
+        vars_sum = quicksum(z_vars_src_dest.values())
 
-    model.addCons(z_var_tw_t >= (z_var - tardiness) * vars_sum)
-    model.addCons(z_var_tw_e >= (earliness * vars_sum) - z_var)
-    model.addCons(z_var_tw_e >= 0)
-    model.addCons(z_var_tw_t >= 0)
+        model.addCons(z_var_tw_t >= (z_var - tardiness) * vars_sum)
+        model.addCons(z_var_tw_e >= (earliness * vars_sum) - z_var)
+        model.addCons(z_var_tw_e >= 0)
+        model.addCons(z_var_tw_t >= 0)
 
 
 
 
 # Huy: Tính chi phí tối ưu
-alpha = 1
-beta = 1
-# Huy: Tính chi phí tối ưu
-# alpha with z_vars
-alpha_sum = quicksum(alpha * z_var for z_var in z_vars.values())
-# beta with z_vars_tw
-beta_sum = quicksum(beta * z_var_tw for (_, _), (z_var_tw_e, z_var_tw_t) in z_vars_tw.items() for z_var_tw in (z_var_tw_e, z_var_tw_t))
-model.setObjective(alpha_sum + beta_sum, "minimize")
-
-
+if len(z_vars) > 0:
+    alpha = 1
+    beta = 1
+    # Huy: Tính chi phí tối ưu
+    # alpha with z_vars
+    alpha_sum = quicksum(alpha * z_var for z_var in z_vars.values())
+    # beta with z_vars_tw
+    beta_sum = quicksum(beta * z_var_tw for (_, _), (z_var_tw_e, z_var_tw_t) in z_vars_tw.items() for z_var_tw in (z_var_tw_e, z_var_tw_t))
+    model.setObjective(alpha_sum + beta_sum, "minimize")
+else:
+    print("Không có biến z để tính chi phí tối ưu.")
+    model.setObjective(quicksum(vars_and_costs[var.name] * var_dict[var.name] for var in all_vars if var.name in var_dict), "minimize")
 
 model.optimize()
 if model.getStatus() == "optimal":
