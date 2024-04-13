@@ -168,30 +168,14 @@ a 5 3 0 1 2
 a 3 2 0 1 2
 a 2 0 0 1 2
 """
-"""
-# Phụ thuộc quá nhiều vào cách đọc file và cách tạo biến quyết định
-# Chỉnh các ràng buộc sang tự động dựa theo arc_connect và source
-counter = 0
-while counter < len(arc_connect):
-    i, j = arc_connect[counter]
-    i_next, j_next = arc_connect[counter + 1]
-    # check if both i, j either belong to zero_demand_supply
-    if i in zero_demand_supply or j in zero_demand_supply:
-        for source in exclude_i:
-            var_name = f"x{source}_{i}_{j}"
-            var_next_name = f"x{source}_{i_next}_{j_next}"
-            if var_name in var_dict and var_next_name in var_dict:
-                model.addCons(var_dict[var_name] == var_dict[var_next_name])
-
-    if counter + 3 < len(arc_connect):
-        counter += 2
-    else:
-        break
-"""
 # Huy: Chỉnh các ràng buộc sang tự động
 # Huy: Chỉnh các ràng buộc sang tự động
 # tạo dict theo từng node không có demand để lưu trữ các biến arc của node đó
 # lưu format: {node: [arc1, arc2,...} với các giá trị arc thuộc arc_connect
+
+# sort by node integer value
+zero_demand_supply = sorted(zero_demand_supply, key=lambda x: int(x))
+print(zero_demand_supply)
 
 zero_demand_supply_node_dict_in = {}
 zero_demand_supply_node_dict_out = {}
@@ -210,22 +194,37 @@ for node in zero_demand_supply:
             #print(f"arc_j--> DONE: {arc_i}, arc_j: {arc_j}")
 
 
-for source in exclude_i:
-    for node_dict_in, arcs_dict_in in zero_demand_supply_node_dict_in.items():
-        for node_dict_out, arcs_dict_out in zero_demand_supply_node_dict_out.items():
-            if node_dict_in == node_dict_out:
-                # sum all arc in
-                #print(f"source, arcs_dict_in: {source}, {arcs_dict_in}")
-                sum_arc_in = quicksum(var_dict[f"x{source}_{i}_{j}"] for i, j in arcs_dict_in)
-                #print(f"sum_arc_in: {sum_arc_in}")
-                # sum all arc out
-                #print(f"source, arcs_dict_out: {source}, {arcs_dict_out}")
-                sum_arc_out = quicksum(var_dict[f"x{source}_{i}_{j}"] for i, j in arcs_dict_out)
-                #print(f"sum_arc_out: {sum_arc_out}")
-                # add constraint
-                model.addCons(sum_arc_in == sum_arc_out)
-                break
+#sort by node integer value
+zero_demand_supply_node_dict_in = dict(sorted(zero_demand_supply_node_dict_in.items(), key=lambda x: int(x[0])))
+zero_demand_supply_node_dict_out = dict(sorted(zero_demand_supply_node_dict_out.items(), key=lambda x: int(x[0])))
+print(zero_demand_supply_node_dict_in)
+print(zero_demand_supply_node_dict_out)
 
+# more efficient way
+"""
+for source in exclude_i:
+    for node in zero_demand_supply:
+        arcs_dict_in = zero_demand_supply_node_dict_in.get(node, [])
+        arcs_dict_out = zero_demand_supply_node_dict_out.get(node, [])
+        sum_arc_in = quicksum(var_dict[f"x{source}_{i}_{j}"] for i, j in arcs_dict_in)
+        sum_arc_out = quicksum(var_dict[f"x{source}_{i}_{j}"] for i, j in arcs_dict_out)
+        model.addCons(sum_arc_in == sum_arc_out)
+"""
+"""
+for node in zero_demand_supply:
+    arcs_dict_in = zero_demand_supply_node_dict_in.get(node, [])
+    arcs_dict_out = zero_demand_supply_node_dict_out.get(node, [])
+    for source in exclude_i:
+        sum_arc_in = quicksum(var_dict[f"x{source}_{i}_{j}"] for i, j in arcs_dict_in)
+        sum_arc_out = quicksum(var_dict[f"x{source}_{i}_{j}"] for i, j in arcs_dict_out)
+        model.addCons(sum_arc_in == sum_arc_out)
+"""
+for node in zero_demand_supply:
+    arcs_dict_in = zero_demand_supply_node_dict_in.get(node, [])
+    arcs_dict_out = zero_demand_supply_node_dict_out.get(node, [])
+    sum_arc_in = quicksum(var_dict[f"x{source}_{i}_{j}"] for source in exclude_i for i, j in arcs_dict_in)
+    sum_arc_out = quicksum(var_dict[f"x{source}_{i}_{j}"] for source in exclude_i for i, j in arcs_dict_out)
+    model.addCons(sum_arc_in == sum_arc_out)
 
 """
 #hard code
