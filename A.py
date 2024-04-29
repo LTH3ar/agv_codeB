@@ -57,6 +57,7 @@ model.addCons(x0_2_0 + x3_2_0 <= 1)
 #Ràng buộc về liên thông
 #trừ các điểm nguồn/đích, tổng luồng đi vào của 1 điểm
 #bằng tổng luồng đi ra của 1 điểm
+
 model.addCons(x0_3_2 == x0_2_0)
 model.addCons(x3_3_2 == x3_2_0)
 
@@ -68,6 +69,12 @@ model.addCons(x3_9_8 == x3_8_6)
 
 model.addCons(x0_0_11 == x0_11_9)
 model.addCons(x3_0_11 == x3_11_9)
+"""
+model.addCons(x0_3_2 + x3_3_2 == x0_2_0 + x3_2_0)
+model.addCons(x0_6_5 + x3_6_5 == x0_5_3 + x3_5_3)
+model.addCons(x0_9_8 + x3_9_8 == x0_8_6 + x3_8_6)
+model.addCons(x0_0_11 + x3_0_11 == x0_11_9 + x3_11_9)
+"""
 
 #ràng buộc về liên thông cho điểm nguồn
 model.addCons(x0_0_11 + x0_0_3 == 1 + x0_2_0 + x0_9_0)

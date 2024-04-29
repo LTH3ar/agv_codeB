@@ -134,7 +134,7 @@ def on_click(event, G, flow_dict):
 
 
 # Run
-file_name = 'input.txt'
+file_name = 'simpleInput2.txt'
 #file_name = 'simple2.txt'
 problem_info, node_descriptors, arc_descriptors = read_dimacs_file(file_name)
 
