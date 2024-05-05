@@ -34,7 +34,7 @@ earliness_and_tardiness = {} # format: {node: (earliness, tardiness)}
 Đọc file và tạo biến quyết định
 """
 # Đọc file và tạo biến quyết định
-with open('255_nodes_input.txt', 'r') as file:
+with open('dimacs.min', 'r') as file:
     for line in file:
         # split delimeter ' ' để lấy các phần tử trong dòng
         parts = line.strip().split(' ')
@@ -253,13 +253,26 @@ Tính toán ràng buộc cho các điểm không có demand:
     x24_131_254 = 1.0
     x24_40_255 = 1.0
 """
+print("\n Method 1\n")
 for node in zero_demand_supply:
     arcs_dict_in = zero_demand_supply_node_dict_in.get(node, [])
     arcs_dict_out = zero_demand_supply_node_dict_out.get(node, [])
     sum_arc_in = quicksum(var_dict[f"x{source}_{i}_{j}"] for source in exclude_i for i, j in arcs_dict_in)
+    print(f"Sum arc in: {sum_arc_in}")
     sum_arc_out = quicksum(var_dict[f"x{source}_{i}_{j}"] for source in exclude_i for i, j in arcs_dict_out)
+    print(f"Sum arc out: {sum_arc_out}")
     model.addCons(sum_arc_in == sum_arc_out)
 
+# print("\n Method 2\n")
+# for source in exclude_i:
+#     for node in zero_demand_supply:
+#         arcs_dict_in = zero_demand_supply_node_dict_in.get(node, [])
+#         arcs_dict_out = zero_demand_supply_node_dict_out.get(node, [])
+#         sum_arc_in = quicksum(var_dict[f"x{source}_{i}_{j}"] for i, j in arcs_dict_in)
+#         sum_arc_out = quicksum(var_dict[f"x{source}_{i}_{j}"] for i, j in arcs_dict_out)
+#         print(f"Sum arc in: {sum_arc_in}")
+#         print(f"Sum arc out: {sum_arc_out}")
+#         model.addCons(sum_arc_in == sum_arc_out)
 
 # """
 # Phương pháp tính toán ràng buộc ràng buộc khác:
