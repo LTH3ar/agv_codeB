@@ -1,7 +1,13 @@
 from pyscipopt import Model, quicksum
 
-# Function to read DIMACS file
+# Additional function to track running time
+import time
+import datetime
+import os
+import sys
+time_start = time.time()
 
+# Function to read DIMACS file
 def read_dimacs_file(file_name):
     # DIMACS format: p <problem_type> <num_nodes> <num_arcs>
     problem_info = {} # Create a dictionary to store problem information
@@ -120,10 +126,12 @@ class MinimumCostFlowModel:
         self.arc_descriptors_dict = arc_descriptors_dict # {(src(int), dst(int)): (low(int), cap(int), cost(int))}
         self.earliness_tardiness_dict = earliness_tardiness_dict # {node_id(int): (earliness(int), tardiness(int))}
         self.z_vars = None
+        self.solve_time = None
         self.create_model()
         self.add_constraints()
 
     def create_model(self):
+
         # Create indexed dictionaries for variables
         self.vars_dict_index_i = {}
         self.vars_dict_index_j = {}
@@ -295,8 +303,13 @@ class MinimumCostFlowModel:
             self.model.setObjective(quicksum(self.arc_descriptors_dict[(i, j)][2] * self.all_vars_dict[f"x{supply_node}_{i}_{j}"] for supply_node in self.supply_nodes_dict for (i, j) in self.arc_descriptors_dict), "minimize")
 
         self.model.optimize()
+        self.solve_time = self.model.getSolvingTime()
 
+
+    def output_solution(self):
         if self.model.getStatus() == "optimal":
+            print("Run time:", time.time() - time_start, "SEC\n")
+            print("Solver time:", self.solve_time)
             print("Optimal value:", self.model.getObjVal())
             print("Solution:")
             # Lấy tất cả các biến từ mô hình
@@ -309,8 +322,34 @@ class MinimumCostFlowModel:
             print("No solution found")
 
 
+    def save_solution(self, filename):
+        # check if output folder exists
+        folder = "output_B_solver"
+        if not os.path.exists(folder):
+            os.makedirs(folder)
 
-problem_info, node_descriptors_dict, arc_descriptors_dict, earliness_tardiness_dict = read_custom_dimacs('TSG_0.txt')
+        # generate filename base on file input and current time(DD-MM-YYYY_HH-MM-SS)
+        filename = filename.split(".")[0] + "_" + datetime.datetime.now().strftime("%d-%m-%Y_%H-%M-%S") + ".txt"
+        filename = os.path.join(folder, filename)
+        with open(filename, 'w') as f:
+            if self.model.getStatus() == "optimal":
+                f.write("Run time: " + str(time.time() - time_start) + " SEC\n")
+                f.write("Solver time: " + str(self.solve_time) + "\n")
+                f.write("Optimal value: " + str(self.model.getObjVal()) + "\n")
+                f.write("Solution:\n")
+                # Lấy tất cả các biến từ mô hình
+                vars = self.model.getVars()
+                # In giá trị của tất cả các biến
+                for var in vars:
+                    if self.model.getVal(var) > 0:
+                        f.write(f"{var.name} = {self.model.getVal(var)}\n")
+            else:
+                f.write("No solution found")
+
+
+input_file = sys.argv[1]
+
+problem_info, node_descriptors_dict, arc_descriptors_dict, earliness_tardiness_dict = read_custom_dimacs(input_file)
 
 # # test the function
 # # dictionary format: {'type': 'min', 'num_nodes': 4, 'num_arcs': 5}
@@ -341,15 +380,17 @@ supply_nodes_dict, demand_nodes_dict, zero_nodes_dict = divide_node(node_descrip
 
 supply_nodes_dict, demand_nodes_dict, zero_nodes_dict, arc_descriptors_dict = sort_all_dicts(supply_nodes_dict, demand_nodes_dict, zero_nodes_dict, arc_descriptors_dict)
 
-print(supply_nodes_dict)
-print(demand_nodes_dict)
-print(zero_nodes_dict)
-print(arc_descriptors_dict)
+# print(supply_nodes_dict)
+# print(demand_nodes_dict)
+# print(zero_nodes_dict)
+# print(arc_descriptors_dict)
 
 
 # test the model
 model = MinimumCostFlowModel(supply_nodes_dict, demand_nodes_dict, zero_nodes_dict, arc_descriptors_dict, earliness_tardiness_dict)
 model.solve()
+model.output_solution()
+model.save_solution(input_file)
 
 
 
