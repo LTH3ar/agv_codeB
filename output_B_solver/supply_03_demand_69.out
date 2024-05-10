@@ -1,0 +1,63 @@
+presolving:
+(round 1, fast)       10 del vars, 18 del conss, 0 add conss, 4 chg bounds, 0 chg sides, 0 chg coeffs, 0 upgd conss, 0 impls, 10 clqs
+(round 2, fast)       10 del vars, 18 del conss, 0 add conss, 8 chg bounds, 0 chg sides, 0 chg coeffs, 0 upgd conss, 0 impls, 10 clqs
+(round 3, exhaustive) 10 del vars, 26 del conss, 0 add conss, 8 chg bounds, 4 chg sides, 0 chg coeffs, 0 upgd conss, 0 impls, 10 clqs
+(round 4, exhaustive) 10 del vars, 26 del conss, 0 add conss, 8 chg bounds, 4 chg sides, 0 chg coeffs, 6 upgd conss, 0 impls, 10 clqs
+   (0.0s) probing cycle finished: starting next cycle
+(round 5, exhaustive) 19 del vars, 26 del conss, 0 add conss, 12 chg bounds, 4 chg sides, 0 chg coeffs, 6 upgd conss, 16 impls, 4 clqs
+(round 6, fast)       20 del vars, 32 del conss, 0 add conss, 12 chg bounds, 6 chg sides, 4 chg coeffs, 6 upgd conss, 16 impls, 2 clqs
+(round 7, fast)       20 del vars, 32 del conss, 0 add conss, 16 chg bounds, 6 chg sides, 4 chg coeffs, 6 upgd conss, 16 impls, 2 clqs
+(round 8, exhaustive) 20 del vars, 34 del conss, 0 add conss, 16 chg bounds, 7 chg sides, 4 chg coeffs, 6 upgd conss, 16 impls, 2 clqs
+(round 9, fast)       21 del vars, 34 del conss, 0 add conss, 16 chg bounds, 7 chg sides, 4 chg coeffs, 6 upgd conss, 16 impls, 2 clqs
+   (0.0s) probing cycle finished: starting next cycle
+(round 10, exhaustive) 21 del vars, 34 del conss, 0 add conss, 17 chg bounds, 7 chg sides, 0 chg coeffs, 6 upgd conss, 18 impls, 2 clqs
+   (0.0s) probing cycle finished: starting next cycle
+   (0.0s) symmetry computation started: requiring (bin +, int +, cont +), (fixed: bin -, int -, cont -)
+   (0.0s) no symmetry present (symcode time: 0.00)
+presolving (11 rounds: 11 fast, 6 medium, 6 exhaustive):
+ 21 deleted vars, 34 deleted constraints, 0 added constraints, 17 tightened bounds, 0 added holes, 7 changed sides, 0 changed coefficients
+ 18 implications, 2 cliques
+presolved problem has 13 variables (4 bin, 0 int, 5 impl, 4 cont) and 12 constraints
+      2 constraints of type <setppc>
+      6 constraints of type <linear>
+      4 constraints of type <nonlinear>
+Presolving Time: 0.00
+
+ time | node  | left  |LP iter|LP it/n|mem/heur|mdpt |vars |cons |rows |cuts |sepa|confs|strbr|  dualbound   | primalbound  |  gap   | compl. 
+p 0.0s|     1 |     0 |     0 |     - |shiftand|   0 |  21 |  12 |  16 |   0 |  0 |   0 |   0 | 8.000000e+00 | 1.800000e+01 | 125.00%| unknown
+  0.0s|     1 |     0 |    10 |     - |   884k |   0 |  21 |  12 |  16 |   0 |  0 |   0 |   0 | 1.500000e+01 | 1.800000e+01 |  20.00%| unknown
+  0.0s|     1 |     0 |    13 |     - |   914k |   0 |  21 |  12 |  18 |   2 |  1 |   0 |   0 | 1.500000e+01 | 1.800000e+01 |  20.00%| unknown
+  0.0s|     1 |     0 |    16 |     - |   933k |   0 |  21 |  12 |  21 |   5 |  2 |   0 |   0 | 1.500000e+01 | 1.800000e+01 |  20.00%| unknown
+  0.0s|     1 |     0 |    20 |     - |   948k |   0 |  21 |  12 |  22 |   6 |  3 |   0 |   0 | 1.500000e+01 | 1.800000e+01 |  20.00%| unknown
+  0.0s|     1 |     0 |    24 |     - |   987k |   0 |  21 |  12 |  24 |   8 |  4 |   0 |   0 | 1.597959e+01 | 1.800000e+01 |  12.64%| unknown
+  0.0s|     1 |     0 |    27 |     - |  1035k |   0 |  21 |  12 |  25 |   9 |  5 |   0 |   0 | 1.754545e+01 | 1.800000e+01 |   2.59%| unknown
+  0.0s|     1 |     0 |    27 |     - |  1035k |   0 |  21 |  12 |  24 |   9 |  5 |   0 |   0 | 1.754545e+01 | 1.800000e+01 |   2.59%| unknown
+  0.0s|     1 |     0 |    28 |     - |  1064k |   0 |  21 |  11 |  26 |  11 |  6 |   0 |   0 | 1.800000e+01 | 1.800000e+01 |   0.00%| unknown
+  0.0s|     1 |     0 |    28 |     - |  1064k |   0 |  21 |  11 |  26 |  11 |  6 |   0 |   0 | 1.800000e+01 | 1.800000e+01 |   0.00%| unknown
+
+SCIP Status        : problem is solved [optimal solution found]
+Solving Time (sec) : 0.01
+Solving Nodes      : 1
+Primal Bound       : +1.80000000000000e+01 (7 solutions)
+Dual Bound         : +1.80000000000000e+01
+Gap                : 0.00 %
+arc_in: {0: ['x0_2_0', 'x3_2_0', 'x0_9_0', 'x3_9_0']}
+arc_out: {0: ['x0_0_3', 'x3_0_3', 'x0_0_11', 'x3_0_11']}
+arc_in: {3: ['x0_0_3', 'x3_0_3', 'x0_5_3', 'x3_5_3']}
+arc_out: {3: ['x0_3_2', 'x3_3_2', 'x0_3_6', 'x3_3_6']}
+arc_in: {6: ['x0_3_6', 'x3_3_6', 'x0_8_6', 'x3_8_6']}
+arc_out: {6: ['x0_6_5', 'x3_6_5', 'x0_6_9', 'x3_6_9']}
+arc_in: {9: ['x0_6_9', 'x3_6_9', 'x0_11_9', 'x3_11_9']}
+arc_out: {9: ['x0_9_0', 'x3_9_0', 'x0_9_8', 'x3_9_8']}
+Run time: 0.03119492530822754 SEC
+
+Solver time: 0.011271999999999999
+Optimal value: 18.0
+Solution:
+x0_0_11 = 1.0
+x0_11_9 = 1.0
+x3_3_6 = 1.0
+z0 = 4.0
+z3 = 4.0
+z0TW9E = 7.0
+z3TW6E = 3.0

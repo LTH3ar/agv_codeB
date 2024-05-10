@@ -153,8 +153,9 @@ class MinimumCostFlowModel:
         # create variable for earliness and tardiness
         if self.earliness_tardiness_dict != {}:
             self.z_vars = {} # {supply_node: z_var}
-            self.z_vars_TW_E = {} # {(supply_node, demand_node): z_var}
-            self.z_vars_TW_T = {} # {(supply_node, demand_node): z_var}
+            self.z_vars_tw = {} # {(supply_node, demand_node): z_var_tw_e, z_var_tw_t}
+            z_vars_TW_E = {} # {(supply_node, demand_node): z_var}
+            z_vars_TW_T = {} # {(supply_node, demand_node): z_var}
 
             for supply_node in self.supply_nodes_dict:
                 z_var_name = f"z{supply_node}"
@@ -162,11 +163,22 @@ class MinimumCostFlowModel:
                 for demand_node, (earliness, tardiness) in self.earliness_tardiness_dict.items():
                     z_var_name_tw_e = f"z{supply_node}TW{demand_node}E"
                     z_var_name_tw_t = f"z{supply_node}TW{demand_node}T"
-                    self.z_vars_TW_E[(supply_node, demand_node)] = self.model.addVar(vtype="C", name=z_var_name_tw_e)
-                    self.z_vars_TW_T[(supply_node, demand_node)] = self.model.addVar(vtype="C", name=z_var_name_tw_t)
+                    z_vars_TW_E[(supply_node, demand_node)] = self.model.addVar(vtype="C", name=z_var_name_tw_e)
+                    z_vars_TW_T[(supply_node, demand_node)] = self.model.addVar(vtype="C", name=z_var_name_tw_t)
+
+            for supply_node in self.supply_nodes_dict:
+                for demand_node, (earliness, tardiness) in self.earliness_tardiness_dict.items():
+                    self.z_vars_tw[(supply_node, demand_node)] = (z_vars_TW_E[(supply_node, demand_node)], z_vars_TW_T[(supply_node, demand_node)])
 
         self.all_vars = self.model.getVars()
         self.all_vars_dict = {var.name: var for var in self.all_vars}
+
+        # generate cost dictionary
+        self.cost_dict = {}
+        for (i, j), (low, cap, cost) in self.arc_descriptors_dict.items():
+            for supply_node in self.supply_nodes_dict:
+                var_name = f"x{supply_node}_{i}_{j}"
+                self.cost_dict[var_name] = cost
 
     def add_constraints(self):
         # Constraint 1:
@@ -228,63 +240,56 @@ class MinimumCostFlowModel:
         # Constraint 5:
         if self.earliness_tardiness_dict != {}:
 
-            # Additional constrain to support
+            # Constraint 5.1: supply node traffic flow
             for supply_node in self.supply_nodes_dict:
-                arc_in = []
-                arc_out = []
-                for (i, j), _ in self.arc_descriptors_dict.items():
-                    var_name = f"x{supply_node}_{i}_{j}"
-                    if j == supply_node:
-                        arc_in.append(self.all_vars_dict[var_name])
-                    if i == supply_node:
-                        arc_out.append(self.all_vars_dict[var_name])
-                self.model.addCons(1 + quicksum(arc_in) == quicksum(arc_out))
+                arc_in = {}
+                arc_out = {}
+                arc_in.setdefault(supply_node, [])
+                arc_out.setdefault(supply_node, [])
+                for (i, j), (low, cap, cost) in self.arc_descriptors_dict.items():
+                    for vehicle_node in self.supply_nodes_dict:
+                        if i == supply_node:
+                            arc_out[supply_node].append(f"x{vehicle_node}_{i}_{j}")
+                        if j == supply_node:
+                            arc_in[supply_node].append(f"x{vehicle_node}_{i}_{j}")
+                # print(f"arc_in: {arc_in}")
+                # print(f"arc_out: {arc_out}")
+                self.model.addCons(1 + quicksum(self.all_vars_dict[var] for var in arc_in[supply_node]) == quicksum(self.all_vars_dict[var] for var in arc_out[supply_node]))
 
-            for supply_node in self.supply_nodes_dict:
-                arc_in = []
-                arc_out = []
-                for (i, j), _ in self.arc_descriptors_dict.items():
-                    var_name = f"x{supply_node}_{i}_{j}"
-                    if j in self.supply_nodes_dict and j != supply_node:
-                        arc_in.append(self.all_vars_dict[var_name])
-                    if i in self.supply_nodes_dict and i != supply_node:
-                        arc_out.append(self.all_vars_dict[var_name])
-                self.model.addCons(quicksum(arc_in) == quicksum(arc_out))
+            # Constraint 5.2: for demand node traffic flow
+            for demand_node in self.demand_nodes_dict:
+                arc_in = {}
+                arc_out = {}
+                arc_in.setdefault(demand_node, [])
+                arc_out.setdefault(demand_node, [])
+                for (i, j), (low, cap, cost) in self.arc_descriptors_dict.items():
+                    for supply_node in self.supply_nodes_dict:
+                        if i == demand_node:
+                            arc_out[demand_node].append(f"x{supply_node}_{i}_{j}")
+                        if j == demand_node:
+                            arc_in[demand_node].append(f"x{supply_node}_{i}_{j}")
+                # print(f"arc_in: {arc_in}")
+                # print(f"arc_out: {arc_out}")
+                self.model.addCons(quicksum(self.all_vars_dict[var] for var in arc_in[demand_node]) == 1 + quicksum(self.all_vars_dict[var] for var in arc_out[demand_node]))
 
             for supply_node in self.supply_nodes_dict:
                 z_var = self.z_vars[supply_node]
-                total_sum = 0
-                # constrain: z{supply_node} == sum of all arcs from supply_node with their cost
-                for (i, j), (low, cap, cost) in self.arc_descriptors_dict.items():
-                    var_name = f"x{supply_node}_{i}_{j}"
-                    total_sum += cost * self.all_vars_dict[var_name]
-                self.model.addCons(z_var == total_sum)
+                supply_node_vars = [var for var in self.all_vars if f"x{supply_node}_" in var.name]
+                self.model.addCons(z_var == quicksum(self.cost_dict[var.name] * var for var in supply_node_vars))
 
-                arc_in_t = []
-                arc_in_e = []
-                for demand_node, (earliness, tardiness) in self.earliness_tardiness_dict.items():
-                    z_var_tw_e = self.z_vars_TW_E[(supply_node, demand_node)]
-                    z_var_tw_t = self.z_vars_TW_T[(supply_node, demand_node)]
-
-
-                    # tardingess constraint
-                    for (i, j), (low, cap, cost) in self.arc_descriptors_dict.items():
-                        if j == demand_node:
-                            var_name = f"x{supply_node}_{i}_{j}"
-                            arc_in_t.append(self.all_vars_dict[var_name])
-                    self.model.addCons(z_var_tw_t >= (z_var - tardiness) * quicksum(arc_in_t))
-                    self.model.addCons(z_var_tw_t >= 0)
-
-                    # earliness constraint
-                    for (i, j), (low, cap, cost) in self.arc_descriptors_dict.items():
-                        if j == demand_node:
-                            var_name = f"x{supply_node}_{i}_{j}"
-                            arc_in_e.append(self.all_vars_dict[var_name])
-                    self.model.addCons(z_var_tw_e >= (earliness*quicksum(arc_in_e) - z_var))
-                    self.model.addCons(z_var_tw_e >= 0)
-
-
-
+            for (supply_node, demand_node), (z_var_tw_e, z_var_tw_t) in self.z_vars_tw.items():
+                z_var = self.z_vars[supply_node]
+                z_vars_src_dst = {}
+                for var in self.all_vars:
+                    parts = var.name.split("_")
+                    if (f"x{supply_node}_" in var.name) and (parts[-1] == str(demand_node)):
+                        z_vars_src_dst[var.name] = var
+                earliness, tardiness = self.earliness_tardiness_dict[demand_node]
+                vars_sum = quicksum(z_vars_src_dst.values())
+                self.model.addCons(z_var_tw_t >= 0)
+                self.model.addCons(z_var_tw_e >= 0)
+                self.model.addCons(z_var_tw_t >= (z_var - tardiness) * vars_sum)
+                self.model.addCons(z_var_tw_e >= (earliness * vars_sum) - z_var)
 
 
     def solve(self):
@@ -292,13 +297,12 @@ class MinimumCostFlowModel:
             alpha = 1
             beta = 1
             # quick sum z_vars and multiply with alpha
-            z_vars_sum = alpha * quicksum(self.z_vars.values())
+            alpha_sum = quicksum(alpha * z_var for z_var in self.z_vars.values())
 
             # quick sum z_vars_TW_E and z_vars_TW_T and multiply with beta
-            z_vars_TW_E_sum = beta * quicksum(self.z_vars_TW_E.values())
-            z_vars_TW_T_sum = beta * quicksum(self.z_vars_TW_T.values())
+            beta_sum = quicksum(beta * z_var_tw for (_, _), (z_var_tw_e, z_var_tw_t) in self.z_vars_tw.items() for z_var_tw in (z_var_tw_e, z_var_tw_t))
 
-            self.model.setObjective(z_vars_sum + z_vars_TW_E_sum + z_vars_TW_T_sum, "minimize")
+            self.model.setObjective(alpha_sum + beta_sum, "minimize")
         else:
             self.model.setObjective(quicksum(self.arc_descriptors_dict[(i, j)][2] * self.all_vars_dict[f"x{supply_node}_{i}_{j}"] for supply_node in self.supply_nodes_dict for (i, j) in self.arc_descriptors_dict), "minimize")
 
@@ -347,9 +351,10 @@ class MinimumCostFlowModel:
                 f.write("No solution found")
 
 
-input_file = sys.argv[1]
+input_path = sys.argv[1]
+input_file = input_path.split("/")[-1]
 
-problem_info, node_descriptors_dict, arc_descriptors_dict, earliness_tardiness_dict = read_custom_dimacs(input_file)
+problem_info, node_descriptors_dict, arc_descriptors_dict, earliness_tardiness_dict = read_custom_dimacs(input_path)
 
 # # test the function
 # # dictionary format: {'type': 'min', 'num_nodes': 4, 'num_arcs': 5}
