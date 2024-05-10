@@ -1,0 +1,56 @@
+presolving:
+(round 1, fast)       64 del vars, 31 del conss, 0 add conss, 46 chg bounds, 0 chg sides, 0 chg coeffs, 0 upgd conss, 0 impls, 61 clqs
+(round 2, fast)       78 del vars, 72 del conss, 0 add conss, 46 chg bounds, 0 chg sides, 0 chg coeffs, 0 upgd conss, 0 impls, 60 clqs
+(round 3, exhaustive) 78 del vars, 85 del conss, 0 add conss, 46 chg bounds, 12 chg sides, 0 chg coeffs, 0 upgd conss, 0 impls, 60 clqs
+(round 4, exhaustive) 78 del vars, 85 del conss, 0 add conss, 46 chg bounds, 12 chg sides, 0 chg coeffs, 48 upgd conss, 0 impls, 60 clqs
+(round 5, fast)       79 del vars, 85 del conss, 0 add conss, 46 chg bounds, 12 chg sides, 0 chg coeffs, 48 upgd conss, 0 impls, 59 clqs
+(round 6, fast)       79 del vars, 86 del conss, 0 add conss, 46 chg bounds, 12 chg sides, 0 chg coeffs, 48 upgd conss, 0 impls, 59 clqs
+(round 7, medium)     83 del vars, 89 del conss, 0 add conss, 46 chg bounds, 13 chg sides, 1 chg coeffs, 48 upgd conss, 0 impls, 56 clqs
+   (0.0s) probing cycle finished: starting next cycle
+   (0.0s) symmetry computation started: requiring (bin +, int +, cont +), (fixed: bin -, int -, cont -)
+   (0.0s) symmetry computation finished: 2 generators found (max: 1500, log10 of symmetry group size: 0.0) (symcode time: 0.00)
+dynamic symmetry handling statistics:
+   orbitopal reduction:       no components
+   orbital reduction:         no components
+   lexicographic reduction:   no permutations
+handled 2 out of 2 symmetry components
+(round 8, exhaustive) 83 del vars, 89 del conss, 2 add conss, 46 chg bounds, 13 chg sides, 1 chg coeffs, 48 upgd conss, 0 impls, 159 clqs
+(round 9, exhaustive) 83 del vars, 89 del conss, 2 add conss, 46 chg bounds, 13 chg sides, 1 chg coeffs, 50 upgd conss, 0 impls, 159 clqs
+presolving (10 rounds: 10 fast, 6 medium, 5 exhaustive):
+ 83 deleted vars, 89 deleted constraints, 2 added constraints, 46 tightened bounds, 0 added holes, 13 changed sides, 1 changed coefficients
+ 0 implications, 160 cliques
+presolved problem has 87 variables (87 bin, 0 int, 0 impl, 0 cont) and 66 constraints
+     46 constraints of type <setppc>
+     20 constraints of type <linear>
+transformed objective value is always integral (scale: 1)
+Presolving Time: 0.00
+
+ time | node  | left  |LP iter|LP it/n|mem/heur|mdpt |vars |cons |rows |cuts |sepa|confs|strbr|  dualbound   | primalbound  |  gap   | compl. 
+p 0.0s|     1 |     0 |     0 |     - |   locks|   0 |  87 |  67 |  66 |   0 |  0 |   0 |   0 |-1.000000e+00 | 1.600000e+01 |    Inf | unknown
+  0.0s|     1 |     0 |    29 |     - |  2814k |   0 |  87 |  79 |  66 |   0 |  0 |  13 |   0 | 1.000000e+01 | 1.600000e+01 |  60.00%| unknown
+r 0.0s|     1 |     0 |    29 |     - |rounding|   0 |  87 |  79 |  64 |   0 |  0 |  13 |   0 | 1.000000e+01 | 1.000000e+01 |   0.00%| unknown
+  0.0s|     1 |     0 |    29 |     - |  2818k |   0 |  87 |  79 |  64 |   0 |  0 |  13 |   0 | 1.000000e+01 | 1.000000e+01 |   0.00%| unknown
+  0.0s|     1 |     0 |    29 |     - |  2818k |   0 |  87 |  79 |  64 |   0 |  0 |  13 |   0 | 1.000000e+01 | 1.000000e+01 |   0.00%| unknown
+
+SCIP Status        : problem is solved [optimal solution found]
+Solving Time (sec) : 0.00
+Solving Nodes      : 1
+Primal Bound       : +1.00000000000000e+01 (2 solutions)
+Dual Bound         : +1.00000000000000e+01
+Gap                : 0.00 %
+Run time: 0.005903005599975586 SEC
+
+Solver time: 0.002601
+Optimal value: 10.0
+Solution:
+x1_1_36 = 1.0
+x1_14_24 = 1.0
+x1_24_35 = 1.0
+x1_36_37 = 1.0
+x1_37_14 = 1.0
+x7_7_36 = 1.0
+x7_11_21 = 1.0
+x7_21_34 = 1.0
+x7_36_38 = 1.0
+x7_37_11 = 1.0
+x7_38_37 = 1.0

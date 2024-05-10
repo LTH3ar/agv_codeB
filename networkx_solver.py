@@ -76,7 +76,6 @@ file_name = file_path.split('/')[-1]
 problem_info, node_descriptors, arc_descriptors = read_dimacs_file(file_path)
 flow_cost, flow_dict, G = solve_minimum_cost_flow(problem_info, node_descriptors, arc_descriptors)
 print(f"Problem: {file_name}")
-print(f"Number of nodes: {problem_info['num_nodes']}")
-print(f"Number of arcs: {problem_info['num_arcs']}")
+print(f"Problem info: {problem_info}")
 
 print_solution(flow_cost, flow_dict)

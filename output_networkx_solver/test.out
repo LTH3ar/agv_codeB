@@ -1,0 +1,8 @@
+Problem: test.dimacs
+Problem info: {}
+Optimal cost: 10
+Solution flow:
+1 --> 18: 1
+7 --> 24: 1
+18 --> 34: 1
+24 --> 35: 1
