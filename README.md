@@ -7,6 +7,8 @@
    - `B_details.py` - old version of the code with dynamic constraints
    - `B_solver.py` - new version of the code with dynamic constraints and OOP structure
    - `B_solver.sh` - shell script wrapper to run the code
+   - `B_solver_v2.py` - new version of the code with more aggressive constraints
+   - `B_solver_v2.sh` - shell script wrapper to run the code
    - `networkx_solver.py` - code to solve the problem using networkx library(network simplex)
    - `networkx_solver.sh` - shell script wrapper to run the code
 
