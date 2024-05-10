@@ -1,0 +1,55 @@
+presolving:
+(round 1, fast)       1 del vars, 1 del conss, 0 add conss, 0 chg bounds, 0 chg sides, 0 chg coeffs, 0 upgd conss, 0 impls, 682 clqs
+(round 2, exhaustive) 1 del vars, 3 del conss, 0 add conss, 0 chg bounds, 0 chg sides, 0 chg coeffs, 0 upgd conss, 0 impls, 682 clqs
+(round 3, exhaustive) 1 del vars, 23 del conss, 0 add conss, 0 chg bounds, 20 chg sides, 0 chg coeffs, 0 upgd conss, 0 impls, 682 clqs
+(round 4, exhaustive) 1 del vars, 23 del conss, 0 add conss, 0 chg bounds, 20 chg sides, 0 chg coeffs, 662 upgd conss, 0 impls, 682 clqs
+   (0.0s) sparsify finished: 3/3771 (0.1%) nonzeros canceled - in total 3 canceled nonzeros, 3 changed coefficients, 0 added nonzeros
+   (0.0s) probing: 783/1269 (61.7%) - 0 fixings, 0 aggregations, 354 implications, 0 bound changes
+   (0.0s) probing aborted: 50/50 successive totally useless probings
+   (0.0s) symmetry computation started: requiring (bin +, int +, cont +), (fixed: bin -, int -, cont -)
+   (0.0s) no symmetry present (symcode time: 0.00)
+presolving (5 rounds: 5 fast, 4 medium, 4 exhaustive):
+ 1 deleted vars, 23 deleted constraints, 0 added constraints, 0 tightened bounds, 0 added holes, 20 changed sides, 3 changed coefficients
+ 0 implications, 1036 cliques
+presolved problem has 1269 variables (1269 bin, 0 int, 0 impl, 0 cont) and 1122 constraints
+    662 constraints of type <setppc>
+    460 constraints of type <linear>
+transformed objective value is always integral (scale: 1)
+Presolving Time: 0.04
+
+ time | node  | left  |LP iter|LP it/n|mem/heur|mdpt |vars |cons |rows |cuts |sepa|confs|strbr|  dualbound   | primalbound  |  gap   | compl. 
+* 0.1s|     1 |     0 |   293 |     - |    LP  |   0 |1269 |1156 |1122 |   0 |  0 |  33 |   0 | 3.680000e+02 | 3.680000e+02 |   0.00%| unknown
+  0.1s|     1 |     0 |   293 |     - |    13M |   0 |1269 |1156 |1122 |   0 |  0 |  33 |   0 | 3.680000e+02 | 3.680000e+02 |   0.00%| unknown
+
+SCIP Status        : problem is solved [optimal solution found]
+Solving Time (sec) : 0.05
+Solving Nodes      : 1
+Primal Bound       : +3.68000000000000e+02 (1 solutions)
+Dual Bound         : +3.68000000000000e+02
+Gap                : 0.00 %
+Run time: 0.09838485717773438 SEC
+
+Solver time: 0.053852
+Optimal value: 368.0
+Solution:
+x2_2_22 = 1.0
+x2_13_14 = 1.0
+x2_14_15 = 1.0
+x2_15_16 = 1.0
+x2_16_17 = 1.0
+x2_17_255 = 1.0
+x2_22_23 = 1.0
+x2_23_13 = 1.0
+x24_24_25 = 1.0
+x24_25_45 = 1.0
+x24_45_68 = 1.0
+x24_68_91 = 1.0
+x24_91_114 = 1.0
+x24_114_115 = 1.0
+x24_115_138 = 1.0
+x24_138_161 = 1.0
+x24_151_152 = 1.0
+x24_152_153 = 1.0
+x24_153_154 = 1.0
+x24_154_254 = 1.0
+x24_161_151 = 1.0
