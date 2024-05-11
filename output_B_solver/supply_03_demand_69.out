@@ -36,22 +36,17 @@ p 0.0s|     1 |     0 |     0 |     - |shiftand|   0 |  21 |  12 |  16 |   0 |  
   0.0s|     1 |     0 |    28 |     - |  1064k |   0 |  21 |  11 |  26 |  11 |  6 |   0 |   0 | 1.800000e+01 | 1.800000e+01 |   0.00%| unknown
 
 SCIP Status        : problem is solved [optimal solution found]
-Solving Time (sec) : 0.01
+Solving Time (sec) : 0.00
 Solving Nodes      : 1
 Primal Bound       : +1.80000000000000e+01 (7 solutions)
 Dual Bound         : +1.80000000000000e+01
 Gap                : 0.00 %
-arc_in: {0: ['x0_2_0', 'x3_2_0', 'x0_9_0', 'x3_9_0']}
-arc_out: {0: ['x0_0_3', 'x3_0_3', 'x0_0_11', 'x3_0_11']}
-arc_in: {3: ['x0_0_3', 'x3_0_3', 'x0_5_3', 'x3_5_3']}
-arc_out: {3: ['x0_3_2', 'x3_3_2', 'x0_3_6', 'x3_3_6']}
-arc_in: {6: ['x0_3_6', 'x3_3_6', 'x0_8_6', 'x3_8_6']}
-arc_out: {6: ['x0_6_5', 'x3_6_5', 'x0_6_9', 'x3_6_9']}
-arc_in: {9: ['x0_6_9', 'x3_6_9', 'x0_11_9', 'x3_11_9']}
-arc_out: {9: ['x0_9_0', 'x3_9_0', 'x0_9_8', 'x3_9_8']}
-Run time: 0.03119492530822754 SEC
+Run time: 0.0076291561126708984 SEC
 
-Solver time: 0.011271999999999999
+Solver time: 0.004961
+Total time: 0.007428
+Reading time: 0.0
+Presolving time: 0.0017469999999999999
 Optimal value: 18.0
 Solution:
 x0_0_11 = 1.0

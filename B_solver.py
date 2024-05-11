@@ -237,10 +237,10 @@ class MinimumCostFlowModel:
                         arc_out.append(f"x{supply_node}_{i}_{j}")
                 self.model.addCons(quicksum(self.all_vars_dict[var] for var in arc_in) == quicksum(self.all_vars_dict[var] for var in arc_out))
 
-        # Constraint 5:
+        # Constraint 5, 6, 7:
         if self.earliness_tardiness_dict != {}:
 
-            # Constraint 5.1: supply node traffic flow
+            # Constraint 5: supply node traffic flow
             for supply_node in self.supply_nodes_dict:
                 arc_in = {}
                 arc_out = {}
@@ -256,7 +256,7 @@ class MinimumCostFlowModel:
                 # print(f"arc_out: {arc_out}")
                 self.model.addCons(1 + quicksum(self.all_vars_dict[var] for var in arc_in[supply_node]) == quicksum(self.all_vars_dict[var] for var in arc_out[supply_node]))
 
-            # Constraint 5.2: for demand node traffic flow
+            # Constraint 6: for demand node traffic flow
             for demand_node in self.demand_nodes_dict:
                 arc_in = {}
                 arc_out = {}
@@ -272,6 +272,7 @@ class MinimumCostFlowModel:
                 # print(f"arc_out: {arc_out}")
                 self.model.addCons(quicksum(self.all_vars_dict[var] for var in arc_in[demand_node]) == 1 + quicksum(self.all_vars_dict[var] for var in arc_out[demand_node]))
 
+            # Constraint 7
             for supply_node in self.supply_nodes_dict:
                 z_var = self.z_vars[supply_node]
                 supply_node_vars = [var for var in self.all_vars if f"x{supply_node}_" in var.name]
@@ -308,12 +309,18 @@ class MinimumCostFlowModel:
 
         self.model.optimize()
         self.solve_time = self.model.getSolvingTime()
+        self.total_time = self.model.getTotalTime()
+        self.reading_time = self.model.getReadingTime()
+        self.presolving_time = self.model.getPresolvingTime()
 
 
     def output_solution(self):
         if self.model.getStatus() == "optimal":
             print("Run time:", time.time() - time_start, "SEC\n")
             print("Solver time:", self.solve_time)
+            print("Total time:", self.total_time)
+            print("Reading time:", self.reading_time)
+            print("Presolving time:", self.presolving_time)
             print("Optimal value:", self.model.getObjVal())
             print("Solution:")
             # Lấy tất cả các biến từ mô hình
@@ -339,6 +346,9 @@ class MinimumCostFlowModel:
             if self.model.getStatus() == "optimal":
                 f.write("Run time: " + str(time.time() - time_start) + " SEC\n")
                 f.write("Solver time: " + str(self.solve_time) + "\n")
+                f.write("Total time: " + str(self.total_time) + "\n")
+                f.write("Reading time: " + str(self.reading_time) + "\n")
+                f.write("Presolving time: " + str(self.presolving_time) + "\n")
                 f.write("Optimal value: " + str(self.model.getObjVal()) + "\n")
                 f.write("Solution:\n")
                 # Lấy tất cả các biến từ mô hình

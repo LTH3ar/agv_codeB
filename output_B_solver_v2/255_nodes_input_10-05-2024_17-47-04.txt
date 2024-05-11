@@ -1,5 +1,8 @@
-Run time: 0.09930586814880371 SEC
-Solver time: 0.053852
+Run time: 0.09289813041687012 SEC
+Solver time: 0.062148999999999996
+Total time: 0.09103
+Reading time: 0.0
+Presolving time: 0.049507999999999996
 Optimal value: 368.0
 Solution:
 x2_2_22 = 1.0

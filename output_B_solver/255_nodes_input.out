@@ -24,9 +24,12 @@ Solving Nodes      : 1
 Primal Bound       : +3.68000000000000e+02 (1 solutions)
 Dual Bound         : +3.68000000000000e+02
 Gap                : 0.00 %
-Run time: 0.1231839656829834 SEC
+Run time: 0.12510085105895996 SEC
 
-Solver time: 0.069131
+Solver time: 0.06983199999999999
+Total time: 0.119724
+Reading time: 0.0
+Presolving time: 0.050064
 Optimal value: 368.0
 Solution:
 x2_2_22 = 1.0

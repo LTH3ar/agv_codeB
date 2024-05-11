@@ -31,10 +31,10 @@ presolving:
 (round 30, exhaustive) 67866 del vars, 219847 del conss, 57 add conss, 36643 chg bounds, 0 chg sides, 0 chg coeffs, 386 upgd conss, 0 impls, 401 clqs
 (round 31, medium)     67919 del vars, 219900 del conss, 57 add conss, 36643 chg bounds, 0 chg sides, 0 chg coeffs, 386 upgd conss, 0 impls, 342 clqs
 (round 32, exhaustive) 67927 del vars, 219925 del conss, 74 add conss, 36643 chg bounds, 0 chg sides, 0 chg coeffs, 403 upgd conss, 0 impls, 375 clqs
-   (4.1s) probing: 505/145179 (0.3%) - 0 fixings, 0 aggregations, 148605 implications, 0 bound changes
-   (4.1s) probing aborted: 50/50 successive totally useless probings
-   (4.1s) symmetry computation started: requiring (bin +, int +, cont +), (fixed: bin -, int -, cont -)
-   (4.2s) no symmetry present (symcode time: 0.03)
+   (9.3s) probing: 505/145179 (0.3%) - 0 fixings, 0 aggregations, 148605 implications, 0 bound changes
+   (9.3s) probing aborted: 50/50 successive totally useless probings
+   (9.4s) symmetry computation started: requiring (bin +, int +, cont +), (fixed: bin -, int -, cont -)
+   (9.5s) no symmetry present (symcode time: 0.03)
 presolving (33 rounds: 33 fast, 7 medium, 5 exhaustive):
  67944 deleted vars, 219939 deleted constraints, 77 added constraints, 36643 tightened bounds, 0 added holes, 0 changed sides, 0 changed coefficients
  0 implications, 148970 cliques
@@ -42,22 +42,25 @@ presolved problem has 145179 variables (145179 bin, 0 int, 0 impl, 0 cont) and 6
     112 constraints of type <setppc>
   60417 constraints of type <linear>
 transformed objective value is always integral (scale: 1)
-Presolving Time: 3.97
+Presolving Time: 9.03
 
  time | node  | left  |LP iter|LP it/n|mem/heur|mdpt |vars |cons |rows |cuts |sepa|confs|strbr|  dualbound   | primalbound  |  gap   | compl. 
-p 4.8s|     1 |     0 |     0 |     - |   locks|   0 | 145k|  60k|  60k|   0 |  0 |  20 |   0 |-8.750000e+02 | 5.380000e+03 |    Inf | unknown
-*32.7s|     1 |     0 | 22931 |     - |    LP  |   0 | 145k|  60k|  60k|   0 |  0 |  37 |   0 | 1.200000e+03 | 1.200000e+03 |   0.00%| unknown
- 32.7s|     1 |     0 | 22931 |     - |  1061M |   0 | 145k|  60k|  60k|   0 |  0 |  37 |   0 | 1.200000e+03 | 1.200000e+03 |   0.00%| unknown
+p10.6s|     1 |     0 |     0 |     - |   locks|   0 | 145k|  60k|  60k|   0 |  0 |  20 |   0 |-8.750000e+02 | 5.380000e+03 |    Inf | unknown
+*50.7s|     1 |     0 | 22931 |     - |    LP  |   0 | 145k|  60k|  60k|   0 |  0 |  37 |   0 | 1.200000e+03 | 1.200000e+03 |   0.00%| unknown
+ 50.7s|     1 |     0 | 22931 |     - |  1061M |   0 | 145k|  60k|  60k|   0 |  0 |  37 |   0 | 1.200000e+03 | 1.200000e+03 |   0.00%| unknown
 
 SCIP Status        : problem is solved [optimal solution found]
-Solving Time (sec) : 32.68
+Solving Time (sec) : 50.68
 Solving Nodes      : 1
 Primal Bound       : +1.20000000000000e+03 (2 solutions)
 Dual Bound         : +1.20000000000000e+03
 Gap                : 0.00 %
-Run time: 438.44510197639465 SEC
+Run time: 626.9012689590454 SEC
 
-Solver time: 32.67758
+Solver time: 50.683977
+Total time: 626.620818
+Reading time: 0.0
+Presolving time: 9.026503
 Optimal value: 1200.0
 Solution:
 x2_2_394 = 1.0
