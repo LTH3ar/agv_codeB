@@ -1,0 +1,7 @@
+Problem: supply_03_demand_69.txt
+Problem info: {'type': 'min', 'num_nodes': 8, 'num_arcs': 12}
+Optimal cost: 8
+Solution flow:
+0 --> 11: 1
+3 --> 6: 1
+11 --> 9: 1

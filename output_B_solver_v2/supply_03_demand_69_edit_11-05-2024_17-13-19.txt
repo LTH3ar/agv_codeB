@@ -1,0 +1,10 @@
+Run time: 0.02397012710571289 SEC
+Solver time: 0.004722
+Total time: 0.020177
+Reading time: 0.0
+Presolving time: 0.001676
+Optimal value: 8.0
+Solution:
+x0_0_11 = 1.0
+x0_11_9 = 1.0
+x3_3_6 = 1.0
